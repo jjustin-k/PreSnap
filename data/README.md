@@ -1,35 +1,28 @@
-# Local NFL Big Data Bowl 2025 data
+# Pre-snap coverage dataset
 
-Download the official dataset from:
-https://www.kaggle.com/competitions/nfl-big-data-bowl-2025/data
+`data/presnap/` contains the subset used to predict defensive coverage from pre-snap positions. It retains 8,522 plays (187,484 player rows), excludes 35 incomplete plays, and occupies about 14 MB. The full regional release stays local in ignored `data/regional-2021/`.
 
-Sign in and accept the competition rules on Kaggle before downloading. Extract the archive into this directory so `games.csv`, `plays.csv`, `players.csv`, `player_play.csv`, and `tracking_week_*.csv` are directly under `data/`.
+Source: [NFL Big Data Bowl regional-event release](https://github.com/ThompsonJamesBliss/nfl-big-data-bowl-regional-event-data), revision `85da22eeff2f1d5be106faa9dfe06a1205f2defd`, covering weeks 1–8 of the 2021 season. This is separate from Big Data Bowl 2025.
 
-If the official Kaggle CLI is installed and authenticated:
+## Included files
 
-```sh
-kaggle competitions download -c nfl-big-data-bowl-2025 -p data
-unzip -n data/nfl-big-data-bowl-2025.zip -d data
-```
+- `tracking.csv`: one complete snapshot per included play, containing all 22 players. Select defenders with `isDefense == 1`; retain offensive positions for alignment features. Coordinates and directions are source values, without field normalization.
+- `plays.csv`: pre-snap game context and alignment fields. Join using `gameId` and `playId`.
+- `labels.csv`: `pff_passCoverage` and `pff_passCoverageType` targets, kept separate from predictors.
+- `excluded_plays.csv`: omitted play IDs and exclusion reasons.
+- `summary.json`: retained counts, class distribution, source revision, and output CSV hashes.
+- `source_manifest.json`: original source file sizes and hashes for reproducibility; it does not imply every source file is included here.
 
-All files in this directory except this README are ignored by Git, including archives and derived records. Do not commit credentials. Data remains subject to the competition rules.
+For each labeled play, select the latest frame strictly before the first `ball_snap` event that has valid x/y coordinates, 22 distinct player IDs, and exactly 11 players from each of the possession and defensive teams. Plays without such a frame are excluded. No post-snap tracking, play descriptions, outcomes, penalties, or player-level scouting records are included.
 
-Download status on October 8, 2026: after sign-in and competition-rule acceptance, Kaggle reports: "The dataset for this competition has been removed at the request of the host." The official CSV archive is unavailable; no dataset files were downloaded. An authorized existing copy or an alternative dataset is needed.
+Coverage labels describe the executed coverage, not an independently annotated pre-snap appearance. Neither coverage column belongs in model inputs. Split training and evaluation by `gameId` to avoid sharing plays from the same game across splits. Normalize coordinates by `playDirection` and line of scrimmage during feature preparation. Missing context values and rare coverage classes still require decisions during modeling.
 
-## Available replacement: regional-event release
+## Reproduce
 
-Source: https://github.com/ThompsonJamesBliss/nfl-big-data-bowl-regional-event-data
-
-The publisher documents NFL Next Gen Stats tracking and PFF scouting/coverage labels. This release is separate from Big Data Bowl 2025 and contains 8,557 plays from 122 games in weeks 1–8 of the 2021 season, with 12 distinct `pff_passCoverage` labels.
-
-Local location: `data/regional-2021/`. Tracking is split into `tracking/tracking_<gameId>.csv`, alongside `games.csv`, `plays.csv`, `players.csv`, and `pffScoutingData.csv`. Unlike the 2025 schema, tracking uses `team` rather than `club` and does not have `frameType`; use `frameId` strictly below the play's `ball_snap` event. The related annotation is `pff_passCoverageType`, not `pff_manZone`. Do not include either coverage field as a predictor.
-
-The ignored `manifest.json` records the source revision, byte sizes and SHA-256 hashes. The ignored `audit.json` records complete pre-snap snapshot counts and three actual source examples. All downloaded and derived records remain local.
-
-Verified local audit: 122 tracking files, 8,314,178 tracking rows, and 8,522 labeled plays with a complete strictly pre-snap snapshot containing 11 distinct players per team. The remaining 35 plays did not satisfy these initial snapshot checks. This audit does not establish annotation accuracy or the suitability of every rare coverage class.
-
-To reproduce the audit from the repository root, use:
+From the repository root:
 
 ```sh
-uv run --with pandas python scripts/audit_regional_data.py
+uv run --with pandas python scripts/prepare_presnap_data.py --download
 ```
+
+This downloads missing raw plays/tracking files from the pinned source revision, verifies their hashes, and rebuilds the subset. Omit `--download` when raw files already exist. Generated CSVs are sorted by play and player ID. The summary records exact retained and excluded counts.

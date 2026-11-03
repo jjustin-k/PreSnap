@@ -1,6 +1,7 @@
-# Keep downloaded competition data and derived records local.
+# Keep raw downloads local; track the relevant pre-snap subset.
 /data/*
 !/data/README.md
+!/data/presnap/
 
 # LaTeX build files
 *.aux

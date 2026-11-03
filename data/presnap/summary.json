@@ -1,0 +1,28 @@
+{
+  "source": "https://github.com/ThompsonJamesBliss/nfl-big-data-bowl-regional-event-data",
+  "revision": "85da22eeff2f1d5be106faa9dfe06a1205f2defd",
+  "source_plays": 8557,
+  "included_plays": 8522,
+  "excluded_plays": 35,
+  "tracking_rows": 187484,
+  "coverage_counts": {
+    "Cover-3": 2656,
+    "Cover-1": 2006,
+    "Cover-2": 1078,
+    "Quarters": 1025,
+    "Cover-6": 801,
+    "Red Zone": 376,
+    "Cover-0": 270,
+    "2-Man": 198,
+    "Bracket": 47,
+    "Prevent": 32,
+    "Goal Line": 25,
+    "Miscellaneous": 8
+  },
+  "files": {
+    "excluded_plays.csv": "1c3af6c87b8b5f436b6521f4656b6fad917fc41fbaa5b78f9a89a09b12b4f198",
+    "labels.csv": "19093e087c69e919080b0f555b814dd6ec774d065c9dc876589cfacde02248b5",
+    "plays.csv": "0ee8709304b534b4e4dd4a2756b48e99270ed760cef709488719ac6b7e464dbb",
+    "tracking.csv": "ee4df8f0eae087dab5badb7399cf1818b76ab75a3940b8e5da7118f864d6434c"
+  }
+}
