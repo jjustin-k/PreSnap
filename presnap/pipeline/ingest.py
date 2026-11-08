@@ -2,7 +2,7 @@ import csv
 from collections.abc import Iterator, Mapping
 from os import PathLike
 
-play_to_coverage: dict[str, str] = {}
+play_to_coverage: dict[tuple[str, str], str] = {}
 
 fields: list[str] = [
     'offensive_team',
@@ -30,7 +30,7 @@ ACTIVE_PLAYERS_ON_FIELD: int = 11
 def assign_labels(file_path: str | PathLike[str]) -> None:
     with open(file_path, 'r') as f:
         for row in csv.DictReader(f):
-            play_to_coverage[row['playId']] = f"{row['pff_passCoverage']}-{row['pff_passCoverageType']}"
+            play_to_coverage[(row['gameId'], row['playId'])] = f"{row['pff_passCoverage']}-{row['pff_passCoverageType']}"
 
 def distance_to_goal(offense: str, yardline_side: str, yardline_number: str | int) -> int:
     if offense == yardline_side:
@@ -86,7 +86,7 @@ def transform_data(data: Mapping[str, str]) -> dict[str, str | int]:
         'defenders_in_box': data['defendersInBox'],
 
         #Target
-        'defensive_coverage' : play_to_coverage[data['playId']] 
+        'defensive_coverage' : play_to_coverage[(data['gameId'],data['playId'])] 
     }
 
 def load(file_path: str | PathLike[str], cleaned_data: Mapping[str, str | int]) -> None:
