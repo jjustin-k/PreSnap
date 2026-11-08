@@ -5,6 +5,7 @@ from os import PathLike
 play_to_coverage: dict[tuple[str, str], str] = {}
 
 fields: list[str] = [
+    'game_id',
     'offensive_team',
     'defensive_team',
     'quarter',
@@ -57,14 +58,16 @@ def transform_data(data: Mapping[str, str]) -> dict[str, str | int]:
     db_on_field = int(raw_personal[4])
 
     endzone_distance = distance_to_goal(data['possessionTeam'], data['yardlineSide'], data['yardlineNumber'])
+    minutes, seconds = data["gameClock"].split(":")
+    game_clock = int(minutes) * 60 + int(seconds)
 
     return {
-
+        'game_id' : data['gameId'],
         # Game situation
         'offensive_team' : data['possessionTeam'],
         'defensive_team' : data['defensiveTeam'],
         'quarter' : int(data['quarter']),
-        'game_clock' : data['gameClock'],
+        'game_clock' : game_clock,
         'score_gap' : abs(int(data['preSnapHomeScore']) - int(data['preSnapVisitorScore'])),
 
 
