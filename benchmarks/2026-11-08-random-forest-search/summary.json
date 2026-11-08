@@ -1,0 +1,290 @@
+{
+  "date": "2026-11-08",
+  "selection": "Top three seed-42 configurations rechecked at seeds 7 and 123; choose highest mean validation macro-F1 across all three seeds, breaking ties by mean accuracy.",
+  "versions": {
+    "python": "3.14.2",
+    "sklearn": "1.9.1",
+    "pandas": "3.1.1",
+    "numpy": "2.5.4"
+  },
+  "sha256": {
+    "data/cleaned_data/cleaned_data.csv": "7083a24b3ef4543d5d0e860ea6a7580a6c349b800f5bffc1c115f65f95a92e78",
+    "scripts/tune_random_forest.py": "d48d456b5a212e10b306df9258881d9a2aefb13dac6c086dc8c949d1bdf4c2d3",
+    "presnap/training/random_forest_trainer.py": "76ee4c05062168ddd05d36476da203a866894cda907226e6610de0ae607a3cdf"
+  },
+  "features": [
+    "offensive_team",
+    "defensive_team",
+    "quarter",
+    "game_clock",
+    "score_gap",
+    "down",
+    "yards_to_fd",
+    "yards_to_goal",
+    "offensive_line",
+    "wide_recievers",
+    "running_backs",
+    "tight_ends",
+    "formation",
+    "defensive_line",
+    "line_backers",
+    "defensive_backs",
+    "defenders_in_box"
+  ],
+  "encoded_feature_count": 85,
+  "labels": [
+    "2-Man",
+    "Bracket",
+    "Cover-0",
+    "Cover-1",
+    "Cover-2",
+    "Cover-3",
+    "Cover-6",
+    "Goal Line",
+    "Miscellaneous",
+    "Prevent",
+    "Quarters",
+    "Red Zone"
+  ],
+  "splits": {
+    "training": {
+      "rows": 5921,
+      "games": 85
+    },
+    "validation": {
+      "rows": 1279,
+      "games": 18
+    },
+    "test": {
+      "rows": 1315,
+      "games": 19
+    }
+  },
+  "game_ids": {
+    "training": [
+      2021091200,
+      2021091201,
+      2021091202,
+      2021091204,
+      2021091205,
+      2021091206,
+      2021091207,
+      2021091208,
+      2021091212,
+      2021091213,
+      2021091600,
+      2021091900,
+      2021091902,
+      2021091903,
+      2021091904,
+      2021091906,
+      2021091908,
+      2021091910,
+      2021091911,
+      2021091912,
+      2021091913,
+      2021092300,
+      2021092600,
+      2021092601,
+      2021092602,
+      2021092604,
+      2021092605,
+      2021092606,
+      2021092608,
+      2021092610,
+      2021092613,
+      2021093000,
+      2021100300,
+      2021100301,
+      2021100302,
+      2021100303,
+      2021100305,
+      2021100308,
+      2021100309,
+      2021100310,
+      2021100311,
+      2021100312,
+      2021100400,
+      2021100700,
+      2021101000,
+      2021101002,
+      2021101003,
+      2021101004,
+      2021101005,
+      2021101006,
+      2021101008,
+      2021101009,
+      2021101010,
+      2021101012,
+      2021101013,
+      2021101100,
+      2021101400,
+      2021101700,
+      2021101701,
+      2021101703,
+      2021101704,
+      2021101705,
+      2021101706,
+      2021101707,
+      2021101711,
+      2021102100,
+      2021102400,
+      2021102401,
+      2021102402,
+      2021102404,
+      2021102406,
+      2021102407,
+      2021102408,
+      2021102409,
+      2021102500,
+      2021103100,
+      2021103102,
+      2021103103,
+      2021103104,
+      2021103105,
+      2021103106,
+      2021103109,
+      2021103110,
+      2021103112,
+      2021110100
+    ],
+    "validation": [
+      2021091203,
+      2021091209,
+      2021091210,
+      2021091905,
+      2021092000,
+      2021092603,
+      2021092611,
+      2021100306,
+      2021100313,
+      2021101001,
+      2021101007,
+      2021101011,
+      2021101710,
+      2021101800,
+      2021102405,
+      2021103101,
+      2021103107,
+      2021103111
+    ]
+  },
+  "class_counts": {
+    "training": {
+      "Cover-3": 1837,
+      "Cover-1": 1344,
+      "Cover-2": 795,
+      "Quarters": 719,
+      "Cover-6": 591,
+      "Red Zone": 280,
+      "Cover-0": 167,
+      "2-Man": 117,
+      "Bracket": 30,
+      "Prevent": 22,
+      "Goal Line": 13,
+      "Miscellaneous": 6
+    },
+    "validation": {
+      "Cover-3": 375,
+      "Cover-1": 326,
+      "Quarters": 162,
+      "Cover-2": 152,
+      "Cover-6": 89,
+      "Cover-0": 63,
+      "Red Zone": 49,
+      "2-Man": 45,
+      "Bracket": 8,
+      "Goal Line": 6,
+      "Prevent": 2,
+      "Miscellaneous": 2
+    }
+  },
+  "baseline": {
+    "label": "Cover-3",
+    "accuracy": 0.29319781078967944,
+    "macro_f1": 0.037787182587666265
+  },
+  "finalists": [
+    {
+      "initial_run": 40,
+      "parameters": {
+        "n_estimators": 300,
+        "max_depth": 20,
+        "min_samples_leaf": 1,
+        "max_features": "log2",
+        "class_weight": "balanced",
+        "random_state": 42,
+        "n_jobs": -1
+      },
+      "run_ids": [
+        40,
+        44,
+        45
+      ],
+      "mean_macro_f1": 0.32770329537654314,
+      "std_macro_f1": 0.006595099881747883,
+      "mean_accuracy": 0.3758144383633047
+    },
+    {
+      "initial_run": 37,
+      "parameters": {
+        "n_estimators": 100,
+        "max_depth": 20,
+        "min_samples_leaf": 1,
+        "max_features": "log2",
+        "class_weight": "balanced",
+        "random_state": 42,
+        "n_jobs": -1
+      },
+      "run_ids": [
+        37,
+        42,
+        43
+      ],
+      "mean_macro_f1": 0.3134958942990164,
+      "std_macro_f1": 0.013379039529596886,
+      "mean_accuracy": 0.3562679176439927
+    },
+    {
+      "initial_run": 21,
+      "parameters": {
+        "n_estimators": 100,
+        "max_depth": 20,
+        "min_samples_leaf": 1,
+        "max_features": "sqrt",
+        "class_weight": "balanced",
+        "random_state": 42,
+        "n_jobs": -1
+      },
+      "run_ids": [
+        21,
+        46,
+        47
+      ],
+      "mean_macro_f1": 0.3077156244133732,
+      "std_macro_f1": 0.0235816416826371,
+      "mean_accuracy": 0.35913474068282514
+    }
+  ],
+  "best": {
+    "initial_run": 40,
+    "parameters": {
+      "n_estimators": 300,
+      "max_depth": 20,
+      "min_samples_leaf": 1,
+      "max_features": "log2",
+      "class_weight": "balanced",
+      "random_state": 42,
+      "n_jobs": -1
+    },
+    "run_ids": [
+      40,
+      44,
+      45
+    ],
+    "mean_macro_f1": 0.32770329537654314,
+    "std_macro_f1": 0.006595099881747883,
+    "mean_accuracy": 0.3758144383633047
+  },
+  "test_evaluated": false
+}

@@ -1,4 +1,7 @@
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.compose import ColumnTransformer, make_column_selector
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.pipeline import Pipeline
 from sklearn.model_selection import GroupShuffleSplit
 from sklearn.metrics import (
     accuracy_score,
@@ -22,7 +25,7 @@ def retrieve_data_sets():
         split.split(df, groups=df['game_id'])
     )
 
-    train_df = df.iloc[train_idx].copy()
+    train_df = df.iloc[train_idx].copy().drop(columns=['game_id'])
     remaining_df = df.iloc[remaining_idx].copy()
 
     # Split remaining games equally: 15% validation, 15% test
@@ -33,17 +36,37 @@ def retrieve_data_sets():
         split.split(remaining_df, groups=remaining_df['game_id'])
     )
 
-    val_df = remaining_df.iloc[val_idx].copy()
-    test_df = remaining_df.iloc[test_idx].copy()
+    val_df = remaining_df.iloc[val_idx].copy().drop(columns=['game_id'])
+    test_df = remaining_df.iloc[test_idx].copy().drop(columns=['game_id'])
     return train_df, val_df, test_df
 
 
 def train_model(train_df):
     X, y = train_df.drop(columns=['defensive_coverage']), train_df['defensive_coverage']
-    model = RandomForestClassifier(
-        random_state=42,
-        n_jobs=-1,
+    preprocessor = ColumnTransformer(
+        transformers=[
+            (
+                "categorical",
+                OneHotEncoder(handle_unknown="ignore"),
+                make_column_selector(dtype_include=["object", "string", "category"]),
+            )
+        ],
+        remainder="passthrough",
     )
+
+    model = Pipeline([
+        ("preprocessor", preprocessor),
+        ("classifier", RandomForestClassifier(
+            # Selected by validation search; see benchmarks/2026-11-08-random-forest-search/.
+            n_estimators=300,
+            max_depth=20,
+            max_features="log2",
+            min_samples_leaf=1,
+            random_state=42,
+            n_jobs=-1,
+            class_weight="balanced",
+        )),
+    ])
 
     model.fit(X, y)
     return model
