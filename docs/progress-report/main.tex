@@ -1,0 +1,142 @@
+\documentclass[11pt]{article}
+
+% Change "review" to "final" to generate the final (sometimes called camera-ready) version.
+% Change to "preprint" to generate a non-anonymous version with page numbers.
+\usepackage[]{acl}
+\usepackage{times}
+\usepackage{latexsym}
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+% For Vietnamese characters
+% \usepackage[T5]{fontenc}
+% See https://www.latex-project.org/help/documentation/encguide.pdf for other character sets
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{inconsolata}
+\usepackage{graphicx}
+
+% If the title and author information does not fit in the area allocated, uncomment the following
+%
+%\setlength\titlebox{<dim>}
+%
+% and set <dim> to something 5cm or larger.
+
+\title{Group 77 Progress Report:\\Predicting NFL Defensive Coverage Before the Snap}
+
+\author{Justin Kwinecki, Zayed Umer, William Pol \\
+  CS/SE 4AL3, McMaster University}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+Before the snap, defenses disguise their coverage by showing one alignment and playing another, so a quarterback or coordinator cannot reliably read the coverage from the formation alone. We predict a play's defensive coverage scheme using only information available before the snap: the positions of all 22 players and the game situation. We then ask which pre-snap features separate the coverages. An accurate pre-snap predictor shows how much information a defense gives away, and gives offenses a quantitative basis for game preparation.
+
+\section{Related Work}
+
+\citet{michels2026integrating} predict only Man vs.\ Zone, using elastic-net logistic regression and gradient-boosted trees, with hidden-Markov-model features built from pre-snap motion. The NFL Next Gen Stats model \citep{song2023identifying} classifies eight coverages with an ensemble of CNN-attention networks over the whole play. \citet{dutta2019unsupervised} cluster defensive backs without labels, using Gaussian mixtures to separate man from zone. \citet{song2026decoding} use factorized-attention transformers to predict each defender's assignment frame by frame. Our work differs in using supervised learning on expert PFF labels, a multi-class target, and a single static pre-snap snapshot. Our model is a Random Forest \citep{breiman2001random} implemented in scikit-learn \citep{pedregosa2011scikit}.
+
+\section{Dataset}
+
+We use the Big Data Bowl regional-event release \citep{bigdatabowl2021regional}: 8,557 plays from 122 games in weeks 1--8 of the 2021 season. Player tracking comes from NFL Next Gen Stats (10 samples per second) and coverage labels from Pro Football Focus (PFF). For each play we keep the last complete frame strictly before \texttt{ball\_snap}, with 11 distinct players per team and valid coordinates. This leaves 8,522 labeled plays; 35 failed these checks. Our cleaned table has 8,515 plays and 56 columns, because seven more plays failed context or personnel validation.
+
+Tracking, plays, and labels are joined on \texttt{(gameId, playId)}. \texttt{playId} repeats across games, and an earlier join on \texttt{playId} alone assigned a wrong label to about 45\% of plays; we found this in review and fixed it before the data were used for modeling.
+
+The label is PFF's coverage scheme, with 12 classes. The classes are imbalanced (Table~\ref{tab:classes}): Cover-3 is the majority at 31.2\% of the 8,522 labeled plays, while Bracket, Prevent, Goal Line, and Miscellaneous together have only 112 plays.
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{lrlr}
+    \hline
+    \textbf{Class} & \textbf{Plays} & \textbf{Class} & \textbf{Plays} \\
+    \hline
+    Cover-3  & 2,656 & Cover-0   & 270 \\
+    Cover-1  & 2,006 & 2-Man     & 198 \\
+    Cover-2  & 1,078 & Bracket   & 47 \\
+    Quarters & 1,025 & Prevent   & 32 \\
+    Cover-6  & 801   & Goal Line & 25 \\
+    Red Zone & 376   & Misc.     & 8 \\
+    \hline
+  \end{tabular}
+  \caption{\label{tab:classes}PFF coverage classes among the 8,522 labeled plays.}
+\end{table}
+
+\section{Features}
+
+Each play is one row of tabular features:
+\begin{itemize}
+  \item \textbf{Game context:} quarter, game clock in seconds, absolute score gap, down, yards to first down, yards to goal, offensive formation, and the two team names.
+  \item \textbf{Personnel counts} from the PFF personnel strings: offensive line, receivers, running backs, tight ends, defensive line, linebackers, defensive backs, and defenders in the box.
+  \item \textbf{37 alignment features} from tracking. Depth is measured from the line of scrimmage, and leftward plays are rotated so the offense always attacks the same way. Features include the depths of the two deepest defenders and the lateral spacing between them, counts of defenders beyond 5, 10, and 15 yards, offensive width, counts of players left and right of the formation center, each wide offensive player's distance to the nearest defender, and all 11 defenders' depth and lateral coordinates ordered deepest first.
+\end{itemize}
+The tracking data has no position column, so these features describe geometry and not roles such as safety or cornerback. We perform no feature selection, and \texttt{game\_id} is excluded from the inputs.
+
+\section{Implementation}
+
+The simple baseline predicts the most frequent training class. Our model is a Random Forest with 300 trees, a depth limit of 20, $\log_2$ of the features per split, and balanced class weights. A Random Forest has no single global loss function; each tree is grown by choosing splits that minimize Gini impurity, and the class weights increase the cost of errors on rare classes. Categorical columns are one-hot encoded, with the encoder fitted on training data only.
+
+We chose these settings with a staged search of 41 configurations plus seed-confirmation runs (47 fits in total) evaluated on the validation split; the test split was never used. The search ran before the alignment features were added, and we reused its settings afterward.
+
+\section{Results and Evaluation}
+
+We split by game so that no game appears in more than one partition: 5,921 training plays from 85 games, 1,279 validation plays from 18 games, and 1,315 test plays from 19 games (seed 42). The test set is reserved for the final report. Our primary metric is macro-averaged F1, so that common coverages do not dominate. We also report accuracy, per-class precision and recall, and a normalized confusion matrix.
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{lrr}
+    \hline
+    \textbf{Model (validation)} & \textbf{Acc.} & \textbf{Macro-F1} \\
+    \hline
+    Majority baseline (Cover-3)        & 29.3\% & 0.038 \\
+    RF, context and personnel only     & 38.1\% & 0.330 \\
+    RF + alignment features            & \textbf{49.7\%} & \textbf{0.439} \\
+    \hline
+  \end{tabular}
+  \caption{\label{tab:results}Validation results.}
+\end{table}
+
+The forest beats the baseline by about 20 accuracy points (Table~\ref{tab:results}), and the alignment features account for most of the gain over the context-only model. Table~\ref{tab:perclass} shows per-class results. The common coverages work reasonably well; Cover-1 has recall 0.64 and Quarters 0.63. Red Zone and Goal Line are easy because the situation gives them away. Bracket and Miscellaneous score zero, and 2-Man scores 0.18 F1. Goal Line, Prevent, and Miscellaneous have only 6, 2, and 2 validation examples, so their scores are unstable. With only 18 validation games, all estimates are noisy: repeating the search settings at three seeds varied macro-F1 by about 0.007, which measures model randomness and not variation across new games.
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{lrrrr}
+    \hline
+    \textbf{Class} & \textbf{P} & \textbf{R} & \textbf{F1} & \textbf{n} \\
+    \hline
+    2-Man     & 0.30 & 0.13 & 0.18 & 45 \\
+    Bracket   & 0.00 & 0.00 & 0.00 & 8 \\
+    Cover-0   & 0.44 & 0.57 & 0.50 & 63 \\
+    Cover-1   & 0.58 & 0.64 & 0.61 & 326 \\
+    Cover-2   & 0.36 & 0.24 & 0.29 & 152 \\
+    Cover-3   & 0.61 & 0.44 & 0.51 & 375 \\
+    Cover-6   & 0.28 & 0.35 & 0.31 & 89 \\
+    Goal Line & 0.86 & 1.00 & 0.92 & 6 \\
+    Misc.     & 0.00 & 0.00 & 0.00 & 2 \\
+    Prevent   & 0.67 & 1.00 & 0.80 & 2 \\
+    Quarters  & 0.43 & 0.63 & 0.51 & 162 \\
+    Red Zone  & 0.50 & 0.88 & 0.64 & 49 \\
+    \hline
+    Macro avg & 0.42 & 0.49 & 0.44 & 1279 \\
+    \hline
+  \end{tabular}
+  \caption{\label{tab:perclass}Per-class validation results for the Random Forest with alignment features.}
+\end{table}
+
+\section{Feedback and Plans}
+
+\textbf{[To be completed after the TA meeting.]} Our planned next steps are to decide how to handle the rare classes (merge, drop, or report separately), add grouped cross-validation so estimates are less dependent on 18 validation games, compare with a gradient-boosted model, test removing team names and using a signed score differential, and add player positions so that features can use safety and cornerback roles. We will then evaluate once on the test set. Our largest gain came from the alignment features, which supports the premise that pre-snap geometry carries real information about coverage.
+
+\section*{Team Contributions}
+
+Zayed Umer collected and audited the regional dataset. Justin Kwinecki built the cleaning pipeline, the alignment features, and the Random Forest training and benchmarks. William Pol wrote the task definition and solution sections of the proposal and the team contract, reviewed the pipeline, and found the \texttt{playId} label bug.
+
+\bibliography{custom}
+
+\end{document}
