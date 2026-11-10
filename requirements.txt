@@ -1,0 +1,5 @@
+pandas
+numpy
+# Pin for reproducible Random Forest results across environments.
+scikit-learn==1.9.1
+matplotlib

@@ -51,15 +51,18 @@ def assign_labels(file_path: str | PathLike[str]) -> None:
         for row in csv.DictReader(f):
             play_to_coverage[(row['gameId'], row['playId'])] = row['pff_passCoverage']
 
+
 def distance_to_goal(offense: str, yardline_side: str, yardline_number: str | int) -> int:
     if offense == yardline_side:
         return 100 - int(yardline_number)
     return int(yardline_number)
 
+
 def extract_play_info(file_path: str | PathLike[str]) -> Iterator[dict[str, str]]:
     with open(file_path, 'r') as f:
         for row in csv.DictReader(f):
             yield row
+
 
 def assign_tracking(file_path: str | PathLike[str]) -> None:
     """Index player snapshots by game AND play; do not use row order as identity."""
@@ -195,6 +198,7 @@ def transform_data(data: Mapping[str, str]) -> dict[str, str | int | float]:
         #Target
         'defensive_coverage' : play_to_coverage[(data['gameId'],data['playId'])]
     }
+
 
 def validate_transformation(cleaned_data) -> bool:
     for v in cleaned_data.values():
