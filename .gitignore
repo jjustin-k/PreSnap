@@ -3,12 +3,20 @@
 !/data/README.md
 !/data/presnap/
 !/data/cleaned_data/
-# LaTeX build files
+# LaTeX build files (keep .tex, .bib, .sty, .bst and the final .pdf)
 *.aux
 *.log
 *.out
+*.bbl
+*.blg
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
 *.gz
-
 missfont.log
+
+# macOS
+.DS_Store
 /.vscode/
 /venv/
