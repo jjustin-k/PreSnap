@@ -145,7 +145,7 @@ She had reservations about combining all of the classes with few games into one,
 
 Our plan for the remaining weeks, following her feedback and our own review of the results:
 \begin{itemize}
-  \item Replace the single 18-game validation split with grouped 5-fold cross-validation by game, so that estimates use all 122 games, and run the test set once at the end.
+  \item Replace the single 18-game validation split with grouped 5-fold cross-validation by game over the 103 training and validation games, so that model selection uses more than 18 games. The 19 test games stay untouched until we run the final model on them once.
   \item Decide whether to drop the rare coverage classes (Bracket, Prevent, Goal Line, and Miscellaneous), using the cross-validated per-class results, and report results with and without them.
   \item Compare the Random Forest with gradient-boosted trees (XGBoost) under the same folds and features.
   \item Add player roles (such as safety and cornerback) from the player metadata, to replace our position-free geometry features with role-based ones.
